@@ -1,0 +1,155 @@
+# Sistema de Gestión de Gimnasio - .gitignore principal
+
+# Archivos de documentación temporal
+*.tmp
+*.temp
+~$*
+
+# Archivos de respaldo
+*.bak
+*.backup
+*~
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Archivos de configuración del IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# Archivos de logs del proyecto
+*.log
+logs/
+
+# Variables de entorno globales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de configuración personal
+config.local.*
+settings.local.*
+
+# Archivos de base de datos de desarrollo
+*.sqlite3
+*.db
+
+# Archivos de caché
+.cache/
+cache/
+
+# Archivos temporales del proyecto
+temp/
+tmp/
+
+# Documentos de trabajo (no finales)
+drafts/
+work_in_progress/
+
+# Archivos de instalación
+*.msi
+*.exe
+*.dmg
+*.pkg
+
+# Archivos comprimidos
+*.zip
+*.rar
+*.7z
+*.tar.gz
+
+# Archivos de certificados y claves (SEGURIDAD)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+keys/
+
+# Archivos de configuración de deployment
+docker-compose.override.yml
+.env.production
+
+# Archivos de monitoreo y métricas
+monitoring/
+metrics/
+
+# Archivos de backup de base de datos
+*.sql.backup
+*.dump
+backups/
+
+# Archivos de migración temporal
+migration_temp/
+
+# Archivos de testing global
+test_output/
+coverage_global/
+
+# Archivos de build global
+build/
+dist/
+
+# Dependencias globales (si las hay)
+vendor/
+
+# Archivos de configuración de CI/CD local
+.github/workflows/local_*
+.gitlab-ci.local.yml
+
+# Archivos de análisis de código
+sonar-project.properties.local
+.sonarqube/
+
+# Archivos de Docker locales
+docker-compose.local.yml
+Dockerfile.local
+
+# Archivos de Kubernetes locales
+k8s-local/
+*.local.yaml
+*.local.yml
+
+# Archivos de configuración de proxy/nginx locales
+nginx.local.conf
+proxy.local.conf
+
+# Archivos de configuración de base de datos locales
+database.local.conf
+db.local.json
+
+# Archivos de scripts personales
+scripts/personal/
+my_scripts/
+
+# Archivos de notas y documentación personal
+notes.md
+TODO.personal.md
+NOTES.personal.md
+
+# Archivos de configuración de herramientas de desarrollo
+.editorconfig.local
+.prettierrc.local
+.eslintrc.local
+
+# Archivos de configuración de Git locales
+.gitconfig.local
+
+# Archivos de configuración de SSH
+.ssh/
+ssh_config.local

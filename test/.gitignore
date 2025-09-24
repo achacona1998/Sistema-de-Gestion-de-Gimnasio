@@ -1,0 +1,110 @@
+# Test results and coverage
+coverage/
+htmlcov/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+.nyc_output/
+test-results/
+test_results/
+
+# Jest
+coverage/
+jest_html_reporters.html
+
+# Vitest
+coverage/
+.vitest/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress/fixtures/downloads/
+
+# Test artifacts
+*.log
+test_*.log
+*_test.log
+test-*.log
+
+# Screenshots and videos from tests
+screenshots/
+videos/
+artifacts/
+
+# Test databases
+test.db
+test.sqlite3
+test_*.db
+
+# Temporary test files
+*.tmp
+*.temp
+test_temp/
+temp_test/
+
+# Mock data
+mock_data/
+fixtures/generated/
+
+# Test environment files
+.env.test
+.env.testing
+test.env
+
+# Node modules (if tests have separate dependencies)
+node_modules/
+
+# Python test artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.tox/
+.nox/
+
+# Test reports
+reports/
+test-reports/
+junit.xml
+test-results.xml
+
+# Performance test results
+performance/
+benchmark/
+load-test-results/
+
+# Visual regression test artifacts
+visual-regression/
+diff_output/
+reference_images/
+actual_images/
+
+# Browser automation artifacts
+selenium-debug.log
+geckodriver.log
+chromedriver.log
+
+# IDE test configurations
+.vscode/launch.json
+.idea/runConfigurations/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Backup files
+*.bak
+*.backup
+
+# Logs
+*.log
+logs/

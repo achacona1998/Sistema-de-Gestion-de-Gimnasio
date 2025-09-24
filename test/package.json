@@ -1,0 +1,63 @@
+{
+  "name": "gym-management-tests",
+  "version": "1.0.0",
+  "description": "Test suite for Gym Management System",
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:backend && npm run test:frontend && npm run test:integration",
+    "test:backend": "cd ../backend && python -m pytest ../test/backend/ -v --tb=short",
+    "test:frontend": "cd frontend && vitest run",
+    "test:frontend:watch": "cd frontend && vitest",
+    "test:frontend:ui": "cd frontend && vitest --ui",
+    "test:frontend:coverage": "cd frontend && vitest run --coverage",
+    "test:integration": "cd integration && vitest run",
+    "test:integration:watch": "cd integration && vitest",
+    "test:all": "npm run test:backend && npm run test:frontend:coverage && npm run test:integration",
+    "test:ci": "npm run test:backend && npm run test:frontend:coverage && npm run test:integration",
+    "coverage": "npm run test:frontend:coverage",
+    "coverage:open": "npm run test:frontend:coverage && open frontend/coverage/index.html",
+    "lint:tests": "eslint **/*.test.{js,jsx} **/*.spec.{js,jsx}",
+    "format:tests": "prettier --write **/*.test.{js,jsx} **/*.spec.{js,jsx}"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.5.1",
+    "@vitejs/plugin-react": "^4.1.1",
+    "@vitest/ui": "^1.0.4",
+    "axios": "^1.6.2",
+    "eslint": "^8.54.0",
+    "eslint-plugin-testing-library": "^6.2.0",
+    "eslint-plugin-vitest": "^0.3.9",
+    "jsdom": "^23.0.1",
+    "prettier": "^3.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0",
+    "vitest": "^1.0.4",
+    "@vitest/coverage-v8": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "keywords": [
+    "testing",
+    "vitest",
+    "pytest",
+    "react",
+    "django",
+    "integration-tests",
+    "gym-management"
+  ],
+  "author": "Gym Management Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "workspaces": [
+    "frontend",
+    "integration"
+  ]
+}
