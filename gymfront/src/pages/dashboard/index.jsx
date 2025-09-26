@@ -383,6 +383,25 @@ const DashboardPage = () => {
           />
         </div>
 
+        {/* Alertas y Notificaciones */}
+        {dashboardData?.equipos_mantenimiento > 0 && (
+          <div className="mb-8">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <div className="flex items-center">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3" />
+                <div>
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    {dashboardData.equipos_mantenimiento} equipos requieren mantenimiento
+                  </h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Revisa el estado de los equipos en la sección de mantenimiento.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Sección de gráficos principal */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Gráfico de Ingresos vs Gastos */}

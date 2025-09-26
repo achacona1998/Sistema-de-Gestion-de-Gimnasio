@@ -1,15 +1,10 @@
 import os
 import sys
 import django
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase, APIClient
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 import json
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
+from django.utils import timezone
 
 # Agregar el directorio del backend al path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
@@ -18,7 +13,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'backend'))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gimnasio.settings')
 django.setup()
 
-from apps.core.models import Socio, Membresia, Entrenador, Asistencia, Pago
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from apps.core.models import Socio, Membresia, Entrenador, Asistencia, Pago, Clase, Equipo, SocioClase
 from apps.Users.models import UserAccount
 
 User = get_user_model()
@@ -44,6 +45,7 @@ class AuthenticationTestCase(APITestCase):
         data = {
             'email': 'newuser@test.com',
             'password': 'newpass123',
+            're_password': 'newpass123',
             'first_name': 'New',
             'last_name': 'User'
         }
@@ -99,7 +101,8 @@ class SocioAPITestCase(APITestCase):
             email='admin@test.com',
             password='adminpass123',
             first_name='Admin',
-            last_name='User'
+            last_name='User',
+            is_staff=True
         )
         
         # Obtener token JWT
@@ -110,7 +113,7 @@ class SocioAPITestCase(APITestCase):
         # Crear membresía de prueba
         self.membresia = Membresia.objects.create(
             tipo='Básica',
-            precio=50.00,
+            precio_mensual=50.00,
             duracion_meses=1,
             descripcion='Membresía básica de prueba'
         )
@@ -127,13 +130,310 @@ class SocioAPITestCase(APITestCase):
         """Test para obtener lista de socios"""
         url = '/api/v1/socios/'
         response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)
+
+
+class EntrenadorAPITestCase(APITestCase):
+    """Tests para la API de Entrenadores"""
+    
+    def setUp(self):
+        """Configuración inicial para los tests"""
+        self.client = APIClient()
+        
+        # Crear usuario y autenticarlo
+        self.user = UserAccount.objects.create_user(
+            email='admin@test.com',
+            password='adminpass123',
+            first_name='Admin',
+            last_name='User',
+            is_staff=True
+        )
+        
+        # Autenticar usuario
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {refresh.access_token}')
+        
+        # Crear entrenador de prueba
+        self.entrenador = Entrenador.objects.create(
+            nombre='Carlos Fitness',
+            telefono='987654321',
+            correo='carlos@gym.com',
+            especialidad='CrossFit'
+        )
+    
+    def test_get_entrenadores_list(self):
+        """Test para obtener lista de entrenadores"""
+        url = '/api/v1/entrenadores/'
+        response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data), 1)
     
+    def test_create_entrenador(self):
+        """Test para crear un nuevo entrenador"""
+        url = '/api/v1/entrenadores/'
+        data = {
+            'nombre': 'Ana García',
+            'telefono': '555123456',
+            'correo': 'ana@gym.com',
+            'especialidad': 'Yoga'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Entrenador.objects.filter(correo='ana@gym.com').exists())
+    
+    def test_update_entrenador(self):
+        """Test para actualizar un entrenador"""
+        url = f'/api/v1/entrenadores/{self.entrenador.entrenador_id}/'
+        data = {
+            'nombre': 'Carlos Fitness Updated',
+            'telefono': '987654321',
+            'correo': 'carlos@gym.com',
+            'especialidad': 'CrossFit Avanzado'
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.entrenador.refresh_from_db()
+        self.assertEqual(self.entrenador.especialidad, 'CrossFit Avanzado')
+
+
+class ClaseAPITestCase(APITestCase):
+    """Tests para la API de Clases"""
+    
+    def setUp(self):
+        """Configuración inicial para los tests"""
+        self.client = APIClient()
+        
+        # Crear usuario y autenticarlo
+        self.user = UserAccount.objects.create_user(
+            email='admin@test.com',
+            password='adminpass123',
+            first_name='Admin',
+            last_name='User',
+            is_staff=True
+        )
+        
+        # Autenticar usuario
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {refresh.access_token}')
+        
+        # Crear entrenador para las clases
+        self.entrenador = Entrenador.objects.create(
+            nombre='Ana García',
+            telefono='555123456',
+            correo='ana@gym.com',
+            especialidad='Yoga'
+        )
+        
+        # Crear clase de prueba
+        self.clase = Clase.objects.create(
+            nombre='Yoga Matutino',
+            entrenador=self.entrenador,
+            horario=timezone.make_aware(datetime(2024, 1, 15, 8, 0, 0)),
+            capacidad_max=20
+        )
+    
+    def test_get_clases_list(self):
+        """Test para obtener lista de clases"""
+        url = '/api/v1/clases/'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)
+    
+    def test_create_clase(self):
+        """Test para crear una nueva clase"""
+        url = '/api/v1/clases/'
+        data = {
+            'nombre': 'CrossFit Vespertino',
+            'entrenador': self.entrenador.entrenador_id,
+            'horario': '2024-01-15T18:00:00Z',
+            'capacidad_max': 15
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Clase.objects.filter(nombre='CrossFit Vespertino').exists())
+    
+    def test_update_clase(self):
+        """Test para actualizar una clase"""
+        url = f'/api/v1/clases/{self.clase.clase_id}/'
+        data = {
+            'nombre': 'Yoga Matutino Avanzado',
+            'entrenador': self.entrenador.entrenador_id,
+            'horario': '2024-01-15T08:30:00Z',
+            'capacidad_max': 25
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.clase.refresh_from_db()
+        self.assertEqual(self.clase.nombre, 'Yoga Matutino Avanzado')
+        self.assertEqual(self.clase.capacidad_max, 25)
+
+
+class EquipoAPITestCase(APITestCase):
+    """Tests para la API de Equipos"""
+    
+    def setUp(self):
+        """Configuración inicial para los tests"""
+        self.client = APIClient()
+        
+        # Crear usuario y autenticarlo
+        self.user = UserAccount.objects.create_user(
+            email='admin@test.com',
+            password='adminpass123',
+            first_name='Admin',
+            last_name='User',
+            is_staff=True
+        )
+        
+        # Autenticar usuario
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {refresh.access_token}')
+        
+        # Crear equipo de prueba
+        self.equipo = Equipo.objects.create(
+            nombre='Cinta de Correr',
+            descripcion='Cinta de correr profesional',
+            estado='disponible',
+            fecha_adquisicion=date.today(),
+            ultima_mantenimiento=date.today()
+        )
+    
+    def test_get_equipos_list(self):
+        """Test para obtener lista de equipos"""
+        url = '/api/v1/equipos/'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)
+    
+    def test_create_equipo(self):
+        """Test para crear un nuevo equipo"""
+        url = '/api/v1/equipos/'
+        data = {
+            'nombre': 'Bicicleta Estática',
+            'descripcion': 'Bicicleta estática profesional',
+            'estado': 'disponible',
+            'fecha_adquisicion': date.today(),
+            'ultima_mantenimiento': date.today()
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Equipo.objects.filter(nombre='Bicicleta Estática').exists())
+    
+    def test_update_equipo_estado(self):
+        """Test para actualizar el estado de un equipo"""
+        url = f'/api/v1/equipos/{self.equipo.equipo_id}/'
+        data = {
+            'nombre': self.equipo.nombre,
+            'descripcion': self.equipo.descripcion,
+            'estado': 'mantenimiento',
+            'fecha_adquisicion': self.equipo.fecha_adquisicion,
+            'ultima_mantenimiento': date.today()
+        }
+        
+        response = self.client.put(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.equipo.refresh_from_db()
+        self.assertEqual(self.equipo.estado, 'mantenimiento')
+
+
+class PagoAPITestCase(APITestCase):
+    """Tests para la API de Pagos"""
+    
+    def setUp(self):
+        """Configuración inicial para los tests"""
+        self.client = APIClient()
+        
+        # Crear usuario y autenticarlo
+        self.user = UserAccount.objects.create_user(
+            email='admin@test.com',
+            password='adminpass123',
+            first_name='Admin',
+            last_name='User',
+            is_staff=True
+        )
+        
+        # Autenticar usuario
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'JWT {refresh.access_token}')
+        
+        # Crear membresía y socio para los pagos
+        self.membresia = Membresia.objects.create(
+            tipo='Premium',
+            precio_mensual=Decimal('100.00'),
+            duracion_meses=1,
+            descripcion='Membresía premium'
+        )
+        
+        self.socio = Socio.objects.create(
+            nombre='Juan Test',
+            telefono='123456789',
+            correo='juan@test.com',
+            membresia=self.membresia
+        )
+        
+        # Crear pago de prueba
+        self.pago = Pago.objects.create(
+            socio=self.socio,
+            monto=Decimal('100.00'),
+            metodo='efectivo'
+        )
+    
+    def test_get_pagos_list(self):
+        """Test para obtener lista de pagos"""
+        url = '/api/v1/pagos/'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)
+    
+    def test_create_pago(self):
+        """Test para crear un nuevo pago"""
+        url = '/api/v1/pagos/'
+        data = {
+            'socio': self.socio.socio_id,
+            'monto': '100.00',
+            'metodo': 'tarjeta'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Pago.objects.filter(metodo='tarjeta').count(), 1)
+    
+    def test_get_pagos_by_socio(self):
+        """Test para obtener pagos filtrados por socio"""
+        url = f'/api/v1/pagos/?socio={self.socio.socio_id}'
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for pago in response.data:
+            self.assertEqual(pago['socio'], self.socio.socio_id)
+    
+    def test_pago_validation(self):
+        """Test para validación de pagos con monto negativo"""
+        url = '/api/v1/pagos/'
+        data = {
+            'socio': self.socio.socio_id,
+            'monto': '-50.00',
+            'metodo': 'efectivo'
+        }
+        
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
     def test_get_socio_detail(self):
         """Test para obtener detalle de un socio"""
-        url = f'/api/v1/socios/{self.socio.id}/'
+        url = f'/api/v1/socios/{self.socio.socio_id}/'
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -147,7 +447,7 @@ class SocioAPITestCase(APITestCase):
             'nombre': 'María Nueva',
             'telefono': '555-5678',
             'correo': 'maria@test.com',
-            'membresia': self.membresia.id
+            'membresia': self.membresia.membresia_id
         }
         
         response = self.client.post(url, data, format='json')
@@ -156,12 +456,12 @@ class SocioAPITestCase(APITestCase):
     
     def test_update_socio(self):
         """Test para actualizar un socio"""
-        url = f'/api/v1/socios/{self.socio.id}/'
+        url = f'/api/v1/socios/{self.socio.socio_id}/'
         data = {
             'nombre': 'Juan Actualizado',
             'telefono': '555-9999',
             'correo': 'juan@test.com',
-            'membresia': self.membresia.id
+            'membresia': self.membresia.membresia_id
         }
         
         response = self.client.put(url, data, format='json')
@@ -174,11 +474,11 @@ class SocioAPITestCase(APITestCase):
     
     def test_delete_socio(self):
         """Test para eliminar un socio"""
-        url = f'/api/v1/socios/{self.socio.id}/'
+        url = f'/api/v1/socios/{self.socio.socio_id}/'
         response = self.client.delete(url)
         
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Socio.objects.filter(id=self.socio.id).exists())
+        self.assertFalse(Socio.objects.filter(socio_id=self.socio.socio_id).exists())
     
     def test_unauthorized_access(self):
         """Test para acceso no autorizado"""
@@ -203,7 +503,8 @@ class MembresiaAPITestCase(APITestCase):
             email='admin@test.com',
             password='adminpass123',
             first_name='Admin',
-            last_name='User'
+            last_name='User',
+            is_staff=True
         )
         
         # Obtener token JWT
@@ -214,7 +515,7 @@ class MembresiaAPITestCase(APITestCase):
         # Crear membresía de prueba
         self.membresia = Membresia.objects.create(
             tipo='Premium',
-            precio=100.00,
+            precio_mensual=100.00,
             duracion_meses=3,
             descripcion='Membresía premium de prueba'
         )
@@ -232,7 +533,7 @@ class MembresiaAPITestCase(APITestCase):
         url = '/api/v1/membresias/'
         data = {
             'tipo': 'VIP',
-            'precio': 200.00,
+            'precio_mensual': 200.00,
             'duracion_meses': 6,
             'descripcion': 'Membresía VIP semestral'
         }
@@ -243,10 +544,10 @@ class MembresiaAPITestCase(APITestCase):
     
     def test_update_membresia(self):
         """Test para actualizar una membresía"""
-        url = f'/api/v1/membresias/{self.membresia.id}/'
+        url = f'/api/v1/membresias/{self.membresia.membresia_id}/'
         data = {
             'tipo': 'Premium Plus',
-            'precio': 150.00,
+            'precio_mensual': 150.00,
             'duracion_meses': 3,
             'descripcion': 'Membresía premium plus actualizada'
         }
@@ -257,7 +558,7 @@ class MembresiaAPITestCase(APITestCase):
         # Verificar que se actualizó
         self.membresia.refresh_from_db()
         self.assertEqual(self.membresia.tipo, 'Premium Plus')
-        self.assertEqual(self.membresia.precio, Decimal('150.00'))
+        self.assertEqual(self.membresia.precio_mensual, Decimal('150.00'))
 
 
 class AsistenciaAPITestCase(APITestCase):
@@ -283,7 +584,7 @@ class AsistenciaAPITestCase(APITestCase):
         # Crear membresía y socio de prueba
         self.membresia = Membresia.objects.create(
             tipo='Básica',
-            precio=50.00,
+            precio_mensual=50.00,
             duracion_meses=1,
             descripcion='Membresía básica'
         )
@@ -299,9 +600,8 @@ class AsistenciaAPITestCase(APITestCase):
         """Test para registrar asistencia"""
         url = '/api/v1/asistencias/'
         data = {
-            'socio': self.socio.id,
-            'fecha': date.today().isoformat(),
-            'hora_entrada': '09:00:00'
+            'socio': self.socio.socio_id,
+            'fecha_entrada': '2024-01-15T09:00:00Z'
         }
         
         response = self.client.post(url, data, format='json')
@@ -311,10 +611,9 @@ class AsistenciaAPITestCase(APITestCase):
     def test_get_asistencias_list(self):
         """Test para obtener lista de asistencias"""
         # Crear asistencia de prueba
-        Asistencia.objects.create(
+        self.asistencia = Asistencia.objects.create(
             socio=self.socio,
-            fecha=date.today(),
-            hora_entrada='10:00:00'
+            fecha_entrada=datetime(2024, 1, 15, 10, 0, 0)
         )
         
         url = '/api/v1/asistencias/'

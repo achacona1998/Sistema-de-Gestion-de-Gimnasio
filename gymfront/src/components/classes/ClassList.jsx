@@ -21,6 +21,11 @@ const ClassList = () => {
     fetchClasses();
   }, []);
 
+  const handleReserveClass = (classId) => {
+    // Implementación básica para reservar una clase
+    console.log(`Reservando clase con ID: ${classId}`);
+  };
+
   if (loading) return <div>Cargando...</div>;
   if (error) return <div>{error}</div>;
 

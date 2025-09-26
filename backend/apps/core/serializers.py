@@ -5,6 +5,16 @@ class MembresiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Membresia
         fields = '__all__'
+    
+    def validate_precio_mensual(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El precio mensual debe ser mayor que cero.")
+        return value
+    
+    def validate_duracion_meses(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("La duración debe ser mayor que cero.")
+        return value
 
 class EntrenadorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +27,11 @@ class ClaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Clase
         fields = ['clase_id', 'nombre', 'entrenador', 'entrenador_nombre', 'horario', 'capacidad_max']
+    
+    def validate_capacidad_max(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("La capacidad máxima debe ser mayor que cero.")
+        return value
 
 class SocioSerializer(serializers.ModelSerializer):
     membresia_tipo = serializers.CharField(source='membresia.tipo', read_only=True)
@@ -31,6 +46,11 @@ class PagoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pago
         fields = ['pago_id', 'socio', 'socio_nombre', 'monto', 'fecha_pago', 'metodo']
+    
+    def validate_monto(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El monto debe ser mayor que cero.")
+        return value
 
 class AsistenciaSerializer(serializers.ModelSerializer):
     socio_nombre = serializers.CharField(source='socio.nombre', read_only=True)

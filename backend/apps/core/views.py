@@ -69,6 +69,6 @@ class EquipoViewSet(viewsets.ModelViewSet):
     serializer_class = EquipoSerializer
     permission_classes = [IsAuthenticated, IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['fecha_compra', 'ultimo_mantenimiento']
+    filterset_fields = ['fecha_adquisicion', 'ultima_mantenimiento']
     search_fields = ['nombre']
-    ordering_fields = ['fecha_compra', 'ultimo_mantenimiento']
+    ordering_fields = ['fecha_adquisicion', 'ultima_mantenimiento']
