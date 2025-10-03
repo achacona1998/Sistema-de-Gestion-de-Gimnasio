@@ -1,5 +1,8 @@
 # Análisis y Diseño de Sistema de Gestión de Gimnasio
 
+## Ver Historias de Usuario
+https://github.com/users/achacona1998/projects/10/views/1
+
 ## Introducción
 
 Este documento presenta el **análisis, diseño y especificaciones técnicas** para el desarrollo de una aplicación web de gestión de gimnasios. El sistema propuesto busca optimizar la administración integral de gimnasios mediante una plataforma que combine gestión de socios, entrenadores, clases, pagos, equipamiento y reportes analíticos.
