@@ -4,7 +4,7 @@
 https://github.com/users/achacona1998/projects/10/views/1
 
 ## Ver Pantallas
-
+https://github.com/achacona1998/Sistema-de-Gestion-de-Gimnasio/tree/main/analisis/Dise%C3%B1o
 
 ## Introducción
 
